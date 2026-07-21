@@ -1,4 +1,5 @@
 # RAG Pipeline Visualizer
+Ab8RN6KOnYB5zUI1rDRshF0A2Txd9embTlTKfnQjERYqsnqmAw
 
 An education-first, interactive visualizer for a production Retrieval-Augmented
 Generation (RAG) pipeline. Upload a document, watch it become chunks → vectors →
