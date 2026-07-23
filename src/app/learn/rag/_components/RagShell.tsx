@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Upload, FlaskConical, Play, Download, SlidersHorizontal, BarChart3, ChevronDown, GitCompareArrows, MonitorPlay } from "lucide-react";
+import { Upload, FlaskConical, Play, Download, SlidersHorizontal, BarChart3, ChevronDown, GitCompareArrows, MonitorPlay, HelpCircle } from "lucide-react";
 import { useRagStore, STAGE_IDS } from "./ragStore";
 import { runIngestion } from "./lib/pipeline";
 import { ACCEPT_ATTR } from "./lib/parse";
@@ -33,6 +33,7 @@ import LabPanel from "./lab/LabPanel";
 import CoachPanel from "./coach/CoachPanel";
 import PresentationShell from "./presentation/PresentationShell";
 import AccessGate from "./AccessGate";
+import HelpOverlay from "./HelpOverlay";
 import { initSoundCues } from "./audio/sound";
 import { T, eyebrow } from "./theme";
 
@@ -73,6 +74,7 @@ export default function RagShell() {
   const isMobile = useIsMobile(900);   // inspector needs side-by-side room
   const fileRef = useRef<HTMLInputElement>(null);
   const controller = usePlayController();
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const ingested = useRagStore(s => s.ingested);
   const docName = useRagStore(s => s.docName);
@@ -196,6 +198,9 @@ export default function RagShell() {
                 <Download size={15} />
               </button>
             )}
+            <button style={hBtn} onClick={() => setHelpOpen(true)} aria-label="How to use this lab">
+              <HelpCircle size={15} /> help
+            </button>
           </div>
         </div>
 
@@ -317,6 +322,7 @@ export default function RagShell() {
       <PresentationShell />
       <AccessGate />
       <PersonaWelcome />
+      <HelpOverlay open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }
