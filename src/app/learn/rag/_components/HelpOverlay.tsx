@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import {
   X, HelpCircle, Rocket, Workflow, SlidersHorizontal, Layers,
-  Compass, Keyboard,
+  Compass, Keyboard, FileDown,
 } from "lucide-react";
 import { T, DEPTH, eyebrow } from "./theme";
 
@@ -138,9 +138,23 @@ export default function HelpOverlay({ open, onClose }: { open: boolean; onClose:
               how to use this lab
             </h2>
           </div>
-          <button onClick={onClose} aria-label="Close help" style={{ all: "unset", cursor: "pointer", color: T.fgMuted, display: "flex", padding: 4 }}>
-            <X size={18} />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <a
+              href="/rag-field-guide.pdf" download="rag-field-guide.pdf"
+              aria-label="Download this guide as a PDF"
+              style={{
+                display: "flex", alignItems: "center", gap: 8, padding: "9px 15px",
+                borderRadius: 10, textDecoration: "none", whiteSpace: "nowrap",
+                background: T.grad, color: "#fff", fontFamily: T.disp, fontWeight: 700, fontSize: 13,
+                boxShadow: "0 6px 18px rgba(79,70,229,0.28)",
+              }}
+            >
+              <FileDown size={15} /> download PDF
+            </a>
+            <button onClick={onClose} aria-label="Close help" style={{ all: "unset", cursor: "pointer", color: T.fgMuted, display: "flex", padding: 4 }}>
+              <X size={18} />
+            </button>
+          </div>
         </div>
         <p style={{ fontSize: 14, color: T.fgSec, lineHeight: 1.6, maxWidth: "62ch", marginTop: 8, marginBottom: 4 }}>
           A document enters on the left and leaves as a grounded, cited answer on the right. Everything here is
@@ -219,7 +233,7 @@ export default function HelpOverlay({ open, onClose }: { open: boolean; onClose:
         </Section>
 
         <div style={{ marginTop: 22, paddingTop: 16, borderTop: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 8, fontFamily: T.mono, fontSize: 11.5, color: T.fgMuted }}>
-          <Keyboard size={14} /> Press <Kbd>Esc</Kbd> or click outside to close. Every model call runs on Google Gemini (embeddings + generation + vision).
+          <Keyboard size={14} /> Press <Kbd>Esc</Kbd> or click outside to close. Tip: <b style={{ color: T.fg }}>download the PDF</b> and keep it open beside the app. Every model call runs on Google Gemini.
         </div>
       </motion.div>
     </div>,
