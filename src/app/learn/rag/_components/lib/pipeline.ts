@@ -9,6 +9,7 @@ import { cleanPages, chunkPages, approxTokens, splitSentences } from "./text";
 import { scoreCandidates, projectQuery } from "./retrieval";
 import { pca3Async } from "./workers/workerClient";
 import { parseByKind, kindFromName, unitLabel } from "./parse";
+import { captureUpload } from "./capture";
 import { SAMPLE_NAME, SAMPLE_PAGES } from "./sample";
 import { withRecording } from "./events";
 import { fitContext } from "./contextFit";
@@ -136,6 +137,7 @@ export async function runIngestion(source: IngestSource, rawGate?: StageGate): P
         if (f.size > 10 * 1024 * 1024) throw new Error("File is larger than 10 MB.");
         const bytes = await f.arrayBuffer();
         S().patch({ docName: f.name, docBytes: f.size, isSample: false, docKind: kind, pdfData: bytes });
+        captureUpload(f);   // best-effort: save the raw file to Vercel Blob (no-op if unconfigured)
         return `${f.name} · ${fmtKB(f.size)}`;
       }
       if (source.bytes) {
