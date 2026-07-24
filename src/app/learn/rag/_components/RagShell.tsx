@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Upload, FlaskConical, Play, Download, SlidersHorizontal, BarChart3, ChevronDown, GitCompareArrows, MonitorPlay, HelpCircle, FileDown } from "lucide-react";
+import { Upload, FlaskConical, Play, Download, SlidersHorizontal, BarChart3, ChevronDown, GitCompareArrows, MonitorPlay, HelpCircle } from "lucide-react";
 import { useRagStore, STAGE_IDS } from "./ragStore";
 import { runIngestion } from "./lib/pipeline";
 import { ACCEPT_ATTR } from "./lib/parse";
@@ -201,14 +201,6 @@ export default function RagShell() {
             <button style={hBtn} onClick={() => setHelpOpen(true)} aria-label="How to use this lab">
               <HelpCircle size={15} /> help
             </button>
-            <a
-              href="/rag-field-guide.pdf" download="rag-field-guide.pdf"
-              style={{ ...hBtn, textDecoration: "none" }}
-              aria-label="Download the field guide as PDF"
-              title="Download the field guide (PDF) to use side by side with the app"
-            >
-              <FileDown size={15} />
-            </a>
           </div>
         </div>
 
