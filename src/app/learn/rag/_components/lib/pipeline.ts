@@ -157,7 +157,10 @@ export async function runIngestion(source: IngestSource, rawGate?: StageGate): P
         S().patch({ pages: SAMPLE_PAGES });
         return `${SAMPLE_PAGES.length} pages`;
       }
-      const pages = await parseByKind(st.docKind, st.pdfData!, st.docName ?? "");
+      const pages = await parseByKind(
+        st.docKind, st.pdfData!, st.docName ?? "",
+        (note) => { if (S().runId === myRun) S().setStage("parse", { status: "running", note }); },
+      );
       const chars = pages.reduce((n, p) => n + p.text.length, 0);
       if (chars < 20) {
         throw new Error(st.docKind === "pdf"

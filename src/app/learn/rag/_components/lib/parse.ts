@@ -2,7 +2,10 @@
 
 import type { PageText } from "../ragStore";
 import type { DocKind } from "../store/types";
-import { parsePdf } from "./pdf";
+import { parsePdf, renderPdfPagesToJpeg } from "./pdf";
+
+/** Optional progress reporter for slow stages (e.g. per-page OCR). */
+export type ParseProgress = (note: string) => void;
 
 /* Multi-format ingestion. Each format is reduced to PageText[] so the rest
    of the pipeline (clean → chunk → embed) stays format-agnostic.
@@ -49,9 +52,14 @@ export function unitLabel(kind: DocKind, n: number): string {
   }
 }
 
-export async function parseByKind(kind: DocKind, data: ArrayBuffer, name: string): Promise<PageText[]> {
+export async function parseByKind(
+  kind: DocKind,
+  data: ArrayBuffer,
+  name: string,
+  onProgress?: ParseProgress,
+): Promise<PageText[]> {
   switch (kind) {
-    case "pdf": return (await parsePdf(data)).pages;
+    case "pdf": return parsePdfWithOcr(data, onProgress);
     case "excel": return parseSpreadsheet(data);
     case "word": return parseDocx(data);
     case "markdown":
@@ -59,6 +67,48 @@ export async function parseByKind(kind: DocKind, data: ArrayBuffer, name: string
     case "image": return parseImage(data, name);
     default: throw new Error("Unsupported file type. Use PDF, Word, Excel, Markdown, text, or an image.");
   }
+}
+
+/* ── PDF — text layer first, OCR fallback for scans ─────────── */
+/* Most PDFs carry a selectable text layer that pdf.js reads directly. But
+   scanned or "printed-to-PDF" documents are just page images with no text
+   at all. Rather than dead-ending with "looks like a scan", we render each
+   page to an image and run the same Gemini-vision OCR used for image uploads. */
+async function parsePdfWithOcr(data: ArrayBuffer, onProgress?: ParseProgress): Promise<PageText[]> {
+  const { pages } = await parsePdf(data);
+  const textChars = pages.reduce((n, p) => n + p.text.trim().length, 0);
+  if (textChars >= 20) return pages;                     // real text layer — use it
+
+  onProgress?.("no text layer — running OCR…");
+  const images = await renderPdfPagesToJpeg(data, {
+    maxPages: 20,
+    onPage: (n, total) => onProgress?.(`rendering page ${n}/${total} for OCR…`),
+  });
+
+  const ocr: PageText[] = [];
+  for (let i = 0; i < images.length; i++) {
+    const b64 = images[i];
+    if (!b64) continue;
+    onProgress?.(`reading page ${i + 1}/${images.length} with OCR…`);
+    try {
+      const res = await fetch("/api/rag/extract-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mime: "image/jpeg", data: b64 }),
+      });
+      if (!res.ok) continue;
+      const { text } = await res.json();
+      const clean = String(text ?? "").trim();
+      if (clean.length >= 3) ocr.push({ page: i + 1, text: clean });
+    } catch {
+      /* skip a page that failed to OCR; keep going with the rest */
+    }
+  }
+
+  if (ocr.reduce((n, p) => n + p.text.length, 0) < 20) {
+    throw new Error("No selectable text found, and OCR could not read this scanned PDF.");
+  }
+  return ocr;
 }
 
 /* ── Excel — every sheet becomes a page ─────────────────────── */
